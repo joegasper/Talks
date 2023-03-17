@@ -1,0 +1,781 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":["C#","c#"],"languageName":"C#","name":"csharp"},{"aliases":["F#","f#"],"languageName":"F#","name":"fsharp"},{"aliases":[],"languageName":"HTML","name":"html"},{"aliases":[],"languageName":"KQL","name":"kql"},{"aliases":[],"languageName":"Mermaid","name":"mermaid"},{"aliases":["powershell"],"languageName":"PowerShell","name":"pwsh"},{"aliases":[],"name":"value"}]}}
+
+#!markdown
+
+<style>
+table {
+    border-collapse: collapse;
+}
+table, th, td {
+   border: none!important;
+}
+</style>
+
+| <img src="https://avatars.githubusercontent.com/u/6902269?v=4" width="200" alt="Joe Gasper headshot" style="border-radius: 50%"> | <h1>Joe Gasper</h1><br/>Microsoft MVP<br />M365 Apps &amp; Services (New! Oct 2022)<br /><a href="https://www.linkedin.com/in/joegasper/">https://www.linkedin.com/in/joegasper/</a><br /><a href="https://shifts.how">The #ShiftShow Podcast: https://shifts.how</a> | <h3>Gainesville PowerShell<br />User Group<br /><a href="https://twitter.com/gnvpsug">@gnvpsug</a></h3><br />Exploring PowerShell<br />for SharePoint and Teams<br />(for the non-admin)<br />March 2023 |
+|--- | --- |---: |
+
+#!markdown
+
+---
+
+### PnP - Railroad? Consumer goods? What is it?
+
+### Getting Started with Modules
+
+### Practical Applications 
+
+---
+
+#!markdown
+
+### PnP - More than just a PowerShell Module
+
+#### PnP = Patterns & Practices
+
+#### PnP Origins
+
+"[Design Patterns](https://learn.microsoft.com/en-us/archive/msdn-magazine/2009/may/patterns-and-practices-simplifying-patterns-and-practices): Elements of Reusable Object-Oriented Software (Addison-Wesley, 1996), which documented many of the basic design patterns we take for granted today"
+
+"In 2002, the **patterns & practices group** at Microsoft Corporation published the Application Architecture for .NET: Designing Applications and Services guide"
+
+[Started in 2014 as Office 365 Dev PnP](https://devblogs.microsoft.com/microsoft365dev/new-microsoft-365-patterns-and-practices-pnp-team-model-with-new-community-leads/), merged with the SharePoint PnP team, to **form the M365 PnP initiative**. 
+PnP was not just about development, but about community and open-source is really the **"reference model on engaging with the community"** internally at Microsoft.
+
+"PnP team is the group of MVPs who are coordinating the different open-source activities across GitHub and other social media channels. This **team consist of Microsoft employees and community members (MVPs)** focused on helping the community the best use of Microsoft products, like Microsoft Teams, OneDrive, SharePoint or API layer like Microsoft Graph."
+
+#### PnP is a **Community**
+
+Microsoft 365 PnP "Manifesto" - https://github.com/pnp/docs/wiki
+
+M365 & Power Platform Community - https://aka.ms/community/home
+
+M365 & Power Platform Samples - https://aka.ms/community/samples
+
+M365 & Power Platform Blog - https://aka.ms/community/blog
+
+M365 & Power Platform YouTube - https://aka.ms/community/videos
+
+---
+
+#!markdown
+
+### Setting up demo environment 
+
+#!pwsh
+
+$Tenant = 'm365x49343708'
+$Domain = "$($Tenant).onmicrosoft.com"
+$MeganUPN = "meganb@$Domain"
+$AdminUPN = "admin@$Domain"
+$DebraUPN = "debrab@$Domain"
+$MeganCreds = Get-Credential -UserName $MeganUPN -Message "Enter your password"
+$AdminCreds = Get-Credential -UserName $AdminUPN -Message "Enter your password"
+
+#!markdown
+
+---
+
+### Microsoft Teams and PnP PowerShell Modules - Installation
+
+#### Install Microsoft Teams PowerShell Module
+
+#!pwsh
+
+#Install-Module -Name MicrosoftTeams
+Get-Module -ListAvailable -Name MicrosoftTeams | 
+    Select Version,Name,@{Name="CmdCount";Expression={$_.ExportedCommands.Count}}
+
+#!markdown
+
+#### Install PnP PowerShell Module
+
+#!pwsh
+
+#Install-Module -Name PnP.PowerShell
+Get-Module -ListAvailable -Name PnP.PowerShell | 
+    Select Version,Name,@{Name="CmdCount";Expression={$_.ExportedCommands.Count}}
+
+#!markdown
+
+---
+
+### Command Overlap - What's the difference?
+
+#### Policies, Skype4Biz/Phone, new tenant-level features
+
+#!pwsh
+
+Get-Command -Module PnP.PowerShell -Name *channel* | sort Name | select Name,Source
+
+#!pwsh
+
+Get-Command -Module MicrosoftTeams -Name *channel* | sort Name | select Name,Source
+
+#!markdown
+
+---
+
+### First time connecting to your tenant with PnP.PowerShell?
+
+```powershell
+D:\ PS> Connect-PnPOnline -Url https://contoso.sharepoint.com -Interactive
+```
+
+**AADSTS65001: The user or administrator has not consented to use the application with ID '31359c7f-bd7e-475c-86db-fdb8c937548e' named 'PnP Management Shell'. Send an interactive authorization request for this user and resource.**
+
+*Global Admin must consent to allow the PnP.PowerShell module to access your tenant.*
+
+As a user, you can assist your Global Admin by sending them a link to the consent page.
+
+#!pwsh
+
+Register-PnPManagementShellAccess -ShowConsentUrl -Tenant $Domain
+
+#!markdown
+
+Share the following URL with a person that has appropriate access rights on the Azure AD to grant consent for Application Registrations:
+
+```htm
+https://login.microsoftonline.com/<tenant domain>/adminconsent?client_id=31359c7f-bd7e-475c-86db-fdb8c937548e
+```
+
+|<img src="https://raw.githubusercontent.com/joegasper/Talks/main/GNVPSUG/consent1.png"> |<img src="https://raw.githubusercontent.com/joegasper/Talks/main/GNVPSUG/consent2.png"> |<img src="https://raw.githubusercontent.com/joegasper/Talks/main/GNVPSUG/consent3.png"> |<img src="https://raw.githubusercontent.com/joegasper/Talks/main/GNVPSUG/consent4.png"> |
+|:---:|:---:|:---:|:---:|
+
+#!markdown
+
+---
+
+### Connecting to SharePoint Online with PnP.PowerShell
+
+#!pwsh
+
+$MeganCreds.UserName
+$MeganCx = Connect-PnPOnline -Url "https://$($Tenant).sharepoint.com" -Credentials $MeganCreds -ReturnConnection
+$MeganCx | fl *
+Write-Output ('$MeganCx.Url = ' + $MeganCx.Url)
+#or
+Connect-PnPOnline -Url "https://$($Tenant).sharepoint.com" -Credentials $MeganCreds
+Write-Output ('(Get-PnPConnection).Url = ' + (Get-PnPConnection).Url)
+#should
+#Connect-PnPOnline -Url "https://$($Tenant).sharepoint.com" -Interactive
+
+#!markdown
+
+---
+
+### Create a SharePoint Online Communications Site
+
+Check out the PnP resource: https://lookbook.microsoft.com/
+
+#!pwsh
+
+$params = @{
+    Type = 'CommunicationSite'
+    Title = 'CRM Rollout'
+    Url = "https://$($Tenant).sharepoint.com/sites/CRMRollout"
+    Description = 'Get Ready for the CRM Rollout!'
+    SiteDesign = 'Topic'
+}
+$NewSiteUrl = New-PnPSite @params
+$NewSiteUrl
+
+#!markdown
+
+#### Add additional site collection owner to the new site
+
+#!pwsh
+
+#Switch our context(connection) to the new site we created
+Connect-PnPOnline -Url $NewSiteUrl -Credentials $MeganCreds
+Add-PnPSiteCollectionAdmin -Owners $DebraUPN
+Get-PnPSiteCollectionAdmin
+
+#!markdown
+
+#### Add a modern calendar to the new site (save 29 clicks)
+
+#!pwsh
+
+$ListTitle = 'EventsCal'
+$NewList = New-PnPList -Title $ListTitle -Template GenericList
+Add-PnPField -List $NewList -DisplayName 'Start' -InternalName 'Start' -Type DateTime -AddToDefaultView
+Add-PnPField -List $NewList -DisplayName 'End' -InternalName 'End' -Type DateTime -AddToDefaultView
+Add-PnPField -List $NewList -DisplayName 'Event Type' -InternalName 'EventType' -Type `
+     Choice -AddToDefaultView -Choices 'Meeting','Review','StandUp'
+$NewViewJson = @"
+{
+    "parameters": {
+        "__metadata": {
+            "type": "SP.ViewCreationInformation"
+        },
+        "Title": "Calendar",
+        "ViewFields": {
+            "__metadata": {
+                "type": "Collection(Edm.String)"
+            },
+            "results": [
+                "Start",
+                "End",
+                "Title"
+            ]
+        },
+        "ViewTypeKind": 1,
+        "ViewType2": "MODERNCALENDAR",
+        "ViewData": "<FieldRef Name=\"Title\" Type=\"CalendarMonthTitle\" /><FieldRef Name=\"Title\" Type=\"CalendarWeekTitle\" /><FieldRef Name=\"Title\" Type=\"CalendarWeekLocation\" /><FieldRef Name=\"Title\" Type=\"CalendarDayTitle\" /><FieldRef Name=\"Title\" Type=\"CalendarDayLocation\" />",
+        "CalendarViewStyles": "<CalendarViewStyle Title=\"Day\" Type=\"day\" Template=\"CalendarViewdayChrome\" Sequence=\"1\" Default=\"FALSE\" /><CalendarViewStyle Title=\"Week\" Type=\"week\" Template=\"CalendarViewweekChrome\" Sequence=\"2\" Default=\"FALSE\" /><CalendarViewStyle Title=\"Month\" Type=\"month\" Template=\"CalendarViewmonthChrome\" Sequence=\"3\" Default=\"TRUE\" />",
+        "Query": "",
+        "Paged": true,
+        "PersonalView": false,
+        "RowLimit": 0
+    }
+}
+"@
+
+$params = @{
+    Method = 'Post'
+    Url = "$NewSiteUrl/_api/web/lists/GetByTitle('$ListTitle')/Views/Add"
+    ContentType = 'application/json;odata=verbose'
+    Content = $NewViewJson
+}
+Invoke-PnPSPRestMethod @params
+Set-PnPView -List $NewList -Identity 'Calendar' -Values @{DefaultView=$true;MobileView=$true;MobileDefaultView=$true}
+
+#!markdown
+
+---
+
+### SharePoint Online Recycle Bin Recovery
+
+Missing files in the [Communications team](https://teams.microsoft.com/_#/FileBrowserTabApp/General?threadId=19:bNptpdnXX7ChA7wbkWPLq9h_B5HKlMrYudpWrmMfyUA1@thread.tacv2&ctx=channel) site?  Check the recycle bin.
+
+#!pwsh
+
+$SiteUrl = "https://$($Tenant).sharepoint.com/sites/Communications"
+Connect-PnPOnline -Url $SiteUrl -Credentials $MeganCreds
+$DeletedByUPN = $MeganUPN
+$RBin = Get-PnPRecycleBinItem | Where-Object DeletedByEmail -eq $DeletedByUPN
+$Rbin.Count
+$Rbin[0] | select DeletedByName,DeletedDate,DirName,Title | fl *
+
+#!pwsh
+
+#How about just PowerPoint files?
+$RBin = Get-PnPRecycleBinItem | 
+    Where-Object {($_.DeletedByEmail -eq $DeletedByUPN) -and ($_.Title -like '*.pptx') }
+$Rbin.Count
+$Rbin | select Title
+
+#!pwsh
+
+# Retore just PowerPoint files
+Get-PnPRecycleBinItem | 
+    Where-Object {
+        ($_.DeletedByEmail -eq $DeletedByUPN) -and ($_.Title -like '*.pptx') } |
+        Restore-PnPRecycleBinItem -Force
+
+#!markdown
+
+#### Restore the files to the site deleted on a specific day by a specific user.
+
+#!pwsh
+
+#Estimate the restore
+$Culture = Get-Culture
+$DeletedDate = '3/15/2023'
+$DeletedByUPN = $MeganUPN
+(Get-PnPRecycleBinItem | 
+    Where-Object {
+        ($_.DeletedByEmail -eq $DeletedByUPN) -and 
+        ($_.DeletedDate.ToDateTime($Culture).ToShortDateString() -eq $DeletedDate) 
+        } ).count
+
+#!pwsh
+
+#Complete the restore
+Get-PnPRecycleBinItem | 
+    Where-Object {
+        ($_.DeletedByEmail -eq $DeletedByUPN) -and 
+        ($_.DeletedDate.ToDateTime($culture).ToShortDateString() -eq $DeletedDate) } | 
+        Restore-PnPRecycleBinItem -Force
+
+#!markdown
+
+---
+
+### Create SharePoint Online Document Library for Reports
+
+https://m365x49343708.sharepoint.com/sites/Retail
+
+https://m365x49343708.sharepoint.com/sites/Retail/_layouts/15/user.aspx
+
+https://m365x49343708.sharepoint.com/sites/Retail/_layouts/15/groups.aspx
+
+Need to be a Team Owner or Site Collection Administrator
+
+#!pwsh
+
+#Connect to the site collection
+$SiteUrl = "https://$($Tenant).sharepoint.com/sites/Retail"
+Connect-PnPOnline -Url $SiteUrl -Credentials $MeganCreds
+#Set up variables
+$M365Grp = 'Retail Members'
+$GrpOwner = 'Retail Owners'
+$DocLibName = 'Reports'
+$AddOnlyName = 'AddOnly'
+#Convert Here-String as CSV to PS Object
+$csv = @"
+"Region","Country","RegMgr","CtryMgr"
+"AsiaPacific","Japan","alexw","IrvinS"
+"AsiaPacific","India","alexw","IrvinS"
+"AsiaPacific","China","alexw","JoniS"
+"AsiaPacific","Korea","alexw","JoniS"
+"AsiaPacific","Indonesia","alexw","LeeG"
+"AsiaPacific","Australia","alexw","LeeG"
+"Europe","UK","isaiahl","MiriamG"
+"Europe","Turkey","isaiahl","LidiaH"
+"Europe","Germany","isaiahl","MiriamG"
+"Europe","Spain","isaiahl","MiriamG"
+"Europe","France","isaiahl","LynneR"
+"Europe","Italy","isaiahl","LynneR"
+"Americas","Canada","adelev","NestorW"
+"Americas","USA","adelev","NestorW"
+"Americas","Mexico","adelev","PattiF"
+"Americas","Brazil","adelev","PradeepG"
+"@
+$Countries = $csv | ConvertFrom-Csv
+$Countries | ft -AutoSize
+
+#!pwsh
+
+#Create SharePoint Online (SPO) group for managing all other groups
+New-PNPGroup -Title "$DocLibName Group Managers" `
+    -Description "Members can manage $DocLibName groups." `
+    -Owner $GrpOwner
+
+#Create SPO groups for base permissions on library - view, add, modify
+New-PNPGroup -Title "$($DocLibName)_All_View" `
+    -Description "Members can view all $DocLibName content." `
+    -Owner "$DocLibName Group Managers"
+New-PNPGroup -Title "$($DocLibName)_All_Add" `
+    -Description "Members can add content to all $DocLibName folders." `
+    -Owner "$DocLibName Group Managers"
+New-PNPGroup -Title "$($DocLibName)_All_Modify" `
+    -Description "Members can modify all $DocLibName content." `
+    -Owner "$DocLibName Group Managers"
+
+#Create new permissions level for only adding items to library - no delete/edit
+Add-PnPRoleDefinition -RoleName $AddOnlyName -Clone "Contribute" `
+    -Description 'Can add items to the library, but not edit or delete existing items.' `
+    -Exclude DeleteListItems,EditListItems,DeleteVersions
+
+#!pwsh
+
+#Create the document library
+New-PnPList -Title $DocLibName -Template DocumentLibrary -Url $DocLibName -OnQuickLaunch
+$Lib = Get-PnPList -Identity $DocLibName
+$Lib.Title
+
+#!pwsh
+
+#Set base library permissions
+Set-PnPList -Identity $DocLibName -BreakRoleInheritance -ClearSubscopes
+Set-PnPListPermission -Identity $DocLibName -Group "$($DocLibName)_All_View" -AddRole 'Read'
+Set-PnPListPermission -Identity $DocLibName -Group "$($DocLibName)_All_Add" -AddRole $AddOnlyName
+Set-PnPListPermission -Identity $DocLibName -Group "$($DocLibName)_All_Modify" -AddRole 'Contribute'
+
+#!pwsh
+
+#Create first set of subfolders for each region
+$RegionInfo = $Countries | Sort-Object Region | Select-Object Region,RegMgr -Unique
+$RegionInfo
+$Regions = $RegionInfo.Region
+#Create regional folders
+foreach ($Region in $Regions) {
+    Add-PnPFolder -Name $Region -Folder $DocLibName
+}
+
+#!pwsh
+
+#Create regional SPO groups
+foreach ($Region in $Regions) {
+    New-PNPGroup -Title "$($DocLibName)_$($Region)_View" `
+        -Description "Members can view all $($Region) content." `
+        -Owner "$DocLibName Group Managers"
+    New-PNPGroup -Title "$($DocLibName)_$($Region)_Add" `
+        -Description "Members can add content to all $($Region) folders." `
+        -Owner "$DocLibName Group Managers"
+    New-PNPGroup -Title "$($DocLibName)_$($Region)_Modify" `
+        -Description "Members can modify all $($Region) content." `
+        -Owner "$DocLibName Group Managers"
+}
+
+#!pwsh
+
+#Add permissions to each regional folder
+foreach ($Region in $Regions) {
+    Set-PnPFolderPermission -List $DocLibName -Identity "$DocLibName/$Region" `
+        -Group "$($DocLibName)_$($Region)_View" -AddRole 'Read'
+    Set-PnPFolderPermission -List $DocLibName -Identity "$DocLibName/$Region" `
+        -Group "$($DocLibName)_$($Region)_Add" -AddRole $AddOnlyName
+    Set-PnPFolderPermission -List $DocLibName -Identity "$DocLibName/$Region" `
+        -Group "$($DocLibName)_$($Region)_Modify" -AddRole 'Contribute'
+}
+
+#!pwsh
+
+#Create country folders in each regional folder
+foreach ($Country in $Countries) {
+    Add-PnPFolder -Name $Country.Country -Folder "$DocLibName/$($Country.Region)"
+}
+
+#!pwsh
+
+#Create country SPO groups
+foreach ($Country in $Countries) {
+    New-PNPGroup -Title "$($DocLibName)_$($Country.Country)_View" `
+        -Description "Members can view all $($Country.Country) content." `
+        -Owner "$DocLibName Group Managers"
+    New-PNPGroup -Title "$($DocLibName)_$($Country.Country)_Add" `
+        -Description "Members can add content to all $($Country.Country) folders." `
+        -Owner "$DocLibName Group Managers"
+    New-PNPGroup -Title "$($DocLibName)_$($Country.Country)_Modify" `
+        -Description "Members can modify all $($Country.Country) content." `
+        -Owner "$DocLibName Group Managers"
+}
+
+#!pwsh
+
+#Add permissions to each country folder
+foreach ($Country in $Countries) {
+    $RegName = $Country.Region
+    $CntryName = $Country.Country
+    Set-PnPFolderPermission -List $DocLibName -Identity "$DocLibName/$RegName/$CntryName" `
+    -Group "$($DocLibName)_$($CntryName)_View" -AddRole 'Read'
+    Set-PnPFolderPermission -List $DocLibName -Identity "$DocLibName/$RegName/$CntryName" `
+    -Group "$($DocLibName)_$($CntryName)_Add" -AddRole $AddOnlyName
+    Set-PnPFolderPermission -List $DocLibName -Identity "$DocLibName/$RegName/$CntryName" `
+    -Group "$($DocLibName)_$($CntryName)_Modify" -AddRole 'Contribute'
+}
+
+#!pwsh
+
+#Add Regional Managers to their appropriate groups
+foreach ($Region in $RegionInfo) {
+    $UPN = "$($Region.RegMgr)@$Domain"
+    $Grp = "$($DocLibName)_$($Region.Region)_Modify"
+    Write-Output ($UPN + " " + $Grp)
+    Add-PnPGroupMember -LoginName $UPN -Group $Grp
+}
+
+#!pwsh
+
+#Add Country Managers to their appropriate groups
+foreach ($Country in $Countries) {
+    $UPN = "$($Country.CtryMgr)@$Domain"
+    $Grp = "$($DocLibName)_$($Country.Country)_Modify"
+    Write-Output ($UPN + " " + $Grp)    
+    Add-PnPGroupMember -LoginName $UPN -Group $Grp
+}
+
+#!pwsh
+
+#Create group for "getting in the door" and seeing root folders (the regional folders).
+#This is done last so the group is not propagated into deeper subfolders
+New-PnPGroup -Title "$($DocLibName)_RootFolder_View" `
+    -Description "Members can gain access to the root of the library." `
+    -Owner "$DocLibName Group Managers"
+#Add the teams M365 Group to be able to see into just the root of the Reports folder and regional folders.
+#Get in the front door, so managers will see their folders.
+Add-PnPGroupMember -LoginName $M365Grp -Group "$($DocLibName)_RootFolder_View"
+#Add the group to the root folder of the library
+Set-PnPListPermission -Identity $DocLibName -Group "$($DocLibName)_RootFolder_View" -AddRole 'Read'
+#Add the group to the regional folders
+foreach ($Region in $Regions) {
+    Set-PnPFolderPermission -List $DocLibName -Identity "$DocLibName/$Region" `
+        -Group "$($DocLibName)_RootFolder_View" -AddRole 'Read'
+}
+
+#!markdown
+
+--- 
+### Create a Microsoft Team, add channels, add members
+
+#!pwsh
+
+#Name of the Team and Description
+$TeamName = 'Connections 2023'
+$MailNickName = 'Connections2023'
+$TeamDesc = 'Connections 2023 - Make It Happen!'
+#Convert Here-String as CSV to PS Object
+$csv = @"
+"DisplayName","Description","BreakoutQty"
+"🎵 Lounge","Meet up and connect with your peers",""
+"👀 Announcements","Information about the event",""	
+"💾 Tech Support","Get help with Teams and more",""
+"🌎 Region","Talk with Regional Reps",""
+"🚍 Vendors","Connect with Vendors","3"
+"@
+$Channels = $csv | ConvertFrom-Csv
+$Channels | ft -AutoSize
+
+#!pwsh
+
+Connect-MicrosoftTeams -Credential $MeganCreds
+
+#!pwsh
+
+#Create new Microsoft Teams Team
+$TeamSplat = @{
+    DisplayName                         = $TeamName
+    Description                         = $TeamDesc
+    MailNickName                        = $MailNickName
+    Visibility                          = 'Private'
+    AllowCreateUpdateChannels           = $false
+    AllowDeleteChannels                 = $false
+    AllowAddRemoveApps                  = $false
+    AllowCreateUpdateRemoveTabs         = $false
+    AllowCreateUpdateRemoveConnectors   = $false
+    AllowTeamMentions                   = $false
+}
+$Team = New-Team @TeamSplat
+
+#!pwsh
+
+$GroupId = $Team.GroupId
+$Team | fl *
+
+#!pwsh
+
+#Sanity check
+$TotalChannels = 1 + ($Channels | Measure-Object 'BreakoutQty' -Sum).Sum + `
+    $Channels.Count - ($Channels | Where-Object 'BreakoutQty' -gt 0).count
+if ($TotalChannels -gt 200) {
+    throw "More than 200 total channels! ($TotalChannels)"
+}
+$TotalChannels
+
+#!pwsh
+
+#Start creating the channels
+#Breakout channels: If < 100 then "Channel##"; If > 100, then "Channel###"
+foreach ($Channel in $Channels) {
+    #Start-Sleep -Milliseconds 1500
+    $ChannelName = ''
+    $NewChannelName = ''
+    $NewChannelRoot = ''
+    $ChannelBrkOName = ''
+    $ChannelNewName = ''
+    Write-Output "------------"
+    $ChannelName = $Channel.DisplayName
+    Write-Output "Working on channel: $ChannelName"
+    if (($Channel.BreakoutQty -le 0) -or ($null -eq $Channel.BreakoutQty)) {
+        New-TeamChannel -GroupId $GroupId -DisplayName $ChannelName -Description $Channel.Description
+    }
+    elseif ($Channel.BreakoutQty -gt 0) {
+        if ($Channel.BreakoutQty -le 99) {
+            1..$Channel.BreakoutQty |
+            ForEach-Object {
+                #Start-Sleep -Milliseconds 1500
+                $ChannelBrkOName = "$ChannelName" + ("{0:D2}" -f $_)
+                New-TeamChannel -GroupId $GroupId -DisplayName $ChannelBrkOName -Description $Channel.Description
+            }
+        }
+        elseif ( ($Channel.BreakoutQty -le 199) -and ($Channel.BreakoutQty -ge 100)) {
+            1..$Channel.BreakoutQty |
+            ForEach-Object {
+                #Start-Sleep -Milliseconds 1500
+                $ChannelBrkOName = "$ChannelName" + ("{0:D3}" -f $_)
+                New-TeamChannel -GroupId $GroupId -DisplayName $ChannelBrkOName -Description $Channel.Description
+            }
+        }
+        else {
+            Write-Output "Too many breakout channels requested!"
+        }
+    }
+}
+
+#!pwsh
+
+#Add members to the team
+Add-TeamUser -GroupId $GroupId -Role Owner -User "AlexW@$Domain"
+Add-TeamUser -GroupId $GroupId -Role Member -User "NestorW@$Domain"
+
+#!markdown
+
+---
+
+### Active Directory Method to get Teams Owned by a User
+
+Hybrid, on-premises - M365 Groups written back to AD
+
+Permissions to read AD MemberOf attribute
+
+#!pwsh
+
+function Get-M365GroupsOwned
+{
+    [CmdletBinding(SupportsShouldProcess=$true,
+                  PositionalBinding=$true)]
+    [Alias()]
+    [OutputType([String])]
+    Param
+    (
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   ValueFromRemainingArguments=$false,
+                   Position=0)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        $Username
+    )
+
+    Begin {
+    }
+    Process
+    {
+        if ($pscmdlet.ShouldProcess("Target", "Operation")) {
+            $User = Get-ADUser -Identity $Username -Properties MemberOf
+            $M365Groups = $User | Select-Object MemberOf
+
+            foreach ( $Group in $M365Groups.MemberOf ) {
+                if ($Group -like 'CN=Group_*') {
+                    $Owners = Get-ADGroup -Identity $Group -Properties msExchCoManagedByLink | 
+                        Select-Object msExchCoManagedByLink -ExpandProperty msExchCoManagedByLink
+                    if ( $Owners.Contains($User.DistinguishedName) ) {
+                        Get-ADGroup $Group -Properties DisplayName | Select-Object DisplayName,Name
+                    }
+                }
+            }
+        }
+    }
+    End {
+    }
+}
+
+#!markdown
+
+```powershell
+PS R:\> Get-M365GroupsOwned -Username EgonSpengler
+
+DisplayName                         Name
+-----------                         ----
+Climate and Carbon C2E              Group_1c258a66-dd85-478e-9b7d-6d7b0ef2cca2
+Slime Working Group                 Group_f1d23793-dd8b-489b-855f-2c1ae66962e8
+Impact Quantification               Group_7d3b5b0a-6421-4e6c-9486-874d46421eac
+Assoc Counties Education            Group_e7b7871a-849c-4293-1ae6-06bdd85449d0
+Urban Landscapes                    Group_68038793-97a0-475b-b96f-4a45a6685a58
+Biomass Communications              Group_51d23f69-4ae1-432b-dd85-4028aea1c258
+```
+
+#!markdown
+
+---
+
+### Active Directory Method to Report User's Teams/Groups Memberships
+
+Hybrid, on-premises - M365 Groups written back to AD
+
+Permissions to read AD MemberOf attribute
+
+#!pwsh
+
+function Get-M365GroupsForUser
+{
+    [CmdletBinding()]
+    [Alias()]
+    [OutputType([string])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        $UserName,
+        [switch]$Report
+    )
+
+    Begin
+    {
+        class InfoObject {
+            [string]$DisplayName
+            [string]$ShortName
+            [string]$GroupId
+            [datetime]$Created
+            [int]$NumMembers
+            [string]$Owners
+            [string]$Description
+
+            InfoObject($DisplayName, $ShortName, $GroupId, $Created, $NumMembers, $Owners, $Description) {
+                $this.DisplayName = $DisplayName
+                $this.ShortName = $ShortName
+                $this.GroupId = $GroupId
+                $this.Created = $Created
+                $this.NumMembers = $NumMembers
+                $this.Owners = $Owners
+                $this.Description = $Description
+            }
+        }
+    }
+    Process
+    {
+    $Groups = ((Get-ADUser -Properties MemberOf -Identity $UserName).MemberOf).Where{$_ -match 'CN=Group_'}
+    foreach ($Group in $Groups) {
+        if ($Report.IsPresent) {
+            $RptGrp = Get-ADGroup $Group `
+                -Properties DisplayName,mailNickname,Name,Created,`
+                msExchGroupMemberCount,msExchCoManagedByLink,Description
+            $OwnersFQ = Get-ADGroup $Group -Properties msExchCoManagedByLink | 
+                Select-Object -ExpandProperty msExchCoManagedByLink
+            $OwnersNames = foreach ($OwnerListed in $OwnersFQ) { $OwnerListed.Replace('CN=','').Split(',')[0] }
+            $col1 = $RptGrp.DisplayName
+            $col2 = $RptGrp.MailNickName
+            $col3 = $RptGrp.Name.Replace('Group_','')
+            $col4 = $RptGrp.Created
+            $col5 = $RptGrp.msExchGroupMemberCount
+            $col6 = $OwnersNames -join ';'
+            $col7 = $RptGrp.Description
+
+            [InfoObject]::new($col1, $col2, $col3, $col4, $col5, $col6, $col7)
+        } else {
+            Get-ADGroup $Group -Properties *
+        }
+    }
+    }
+    End
+    {
+    }
+}
+
+#!markdown
+
+```powershell
+PS R:\> Get-M365GroupsForUser -UserName EgonSpengler -Report
+
+DisplayName : Slime Working Group
+ShortName   : SlimeWorkingGroup
+GroupId     : f1d23793-dd8b-489b-855f-2c1ae66962e8
+Created     : 10/15/2019 1:50:12 PM
+NumMembers  : 64
+Owners      : pvenkman;EgonSpengler
+Description : Slime Working Group
+
+DisplayName : Urban Alert Working Group
+ShortName   : UrbanAlertWorkingGroup
+GroupId     : 0e7bfea8-a021-4be4-8c5b-a709bfea0213
+Created     : 8/27/2019 2:01:50 PM
+NumMembers  : 16
+Owners      : pvenkman;rstantz
+Description : Urban protection and alert systems
+```
+
+#!markdown
+
+---
+
+### References and Resources
+
+https://github.com/joegasper/Talks/tree/main/GNVPSUG
