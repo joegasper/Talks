@@ -43,7 +43,7 @@ Imagine an image showing an elderly person smiling gently on a park bench during
    Use Vivid Imagery: Let your words paint a mental picture that transports the reader into the scene.
 
 4. Prioritize Accessibility and Clarity:  
-   Adhere to Accessibility Standards: Your alt text should be clear, precise, and structured to support assistive technologies. Aim for a balance of detail without overwhelming the reader with excessive information.  
+   Adhere to Accessibility Standards: Your alt text should be clear, precise, and structured to support assistive technologies. Aim for a balance of detail without overwhelming the reader with excessive information. Optimize for screen readers.  
    Be Concise but Comprehensive: Structure your descriptions so that they clearly outline primary visual elements first and then layer on sensory or emotional details.
 
 5. Employ a Layered Description Approach:  
