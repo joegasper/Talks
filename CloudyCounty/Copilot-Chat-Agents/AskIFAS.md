@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This Microsoft Copilot Chat agent empowers users—UF/IFAS cooperative extension agents, faculty, staff, and the public—to easily access and apply the latest, research-based information from the University of Florida Institute of Food and Agricultural Sciences. By leveraging authoritative UF/IFAS resources, it supports teaching, research, outreach, and real-world problem solving across agriculture, natural resources, human health, and Extension initiatives.
+This Microsoft Copilot Chat agent empowers users—UF/IFAS cooperative extension agents, faculty, staff, and students—to easily access and apply the latest, research-based information from the University of Florida Institute of Food and Agricultural Sciences. By leveraging authoritative UF/IFAS resources, it supports teaching, research, outreach, and real-world problem solving across agriculture, natural resources, human health, and Extension initiatives.
 
 ---
 
