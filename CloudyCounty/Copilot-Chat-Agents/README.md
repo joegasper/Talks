@@ -13,3 +13,7 @@ This Agent is designed to assist with Star Trek-related queries, inspired by the
 ## [AltText](AltText.md)
 
 This Agent is designed to assist users in generating alt text for images. It focuses on creating vivid, detailed, and engaging descriptions that not only capture the visual elements but also convey the story behind the scenes. The agent is tailored to ensure that every image is accessible and rich in context, making it a valuable tool for individuals who rely on alt text for understanding visual content.
+
+## [AskUFHR](AskUFHR.md)
+
+This Agent serves as trusted, policy‑aligned assistant, delivering accurate guidance grounded strictly in official HR resources.
