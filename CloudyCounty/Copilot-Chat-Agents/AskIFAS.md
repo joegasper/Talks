@@ -82,7 +82,7 @@ C. Guided Query Refinement
 
 Web search: Enabled
 
-- https://edis.ifas.ufl.edu/
+- https://ask.ifas.ufl.edu/
 - https://sfyl.ifas.ufl.edu/
 - https://ifas.ufl.edu/
 - https://blogs.ifas.ufl.edu/
