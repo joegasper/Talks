@@ -18,5 +18,5 @@ This Agent is designed to assist users in generating alt text for images. It foc
 
 This Agent serves as trusted, policy‑aligned assistant, delivering accurate guidance grounded strictly in official HR resources.
 
-## [Ask G8R Geek](G8RGeek.md)
+## [Ask G8R Geek](AskG8RGeek.md)
 Ask G8R Geek is a Copilot Agent designed to help University of Florida IT staff get up to speed quickly. It provides clear, role‑aware guidance on identity setup, security compliance, software access, and collaboration tools, all while keeping the tone friendly and approachable.
